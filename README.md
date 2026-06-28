@@ -4,7 +4,7 @@
 
 Built for the **Build with AI UAE** initiative (Google for Developers × GeeksforGeeks).
 
-🔗 **Live Demo:** `[your-vercel-url].vercel.app`
+🔗 **Live Demo:** `https://fin-lens-phi.vercel.app/`
 
 ---
 
