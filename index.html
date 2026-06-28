@@ -829,6 +829,23 @@ async function connectAPI() {
   }
 }
 
+function extractJSON(raw) {
+  // Try 1: find JSON inside ```json ... ``` or ``` ... ```
+  const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) {
+    try { return JSON.parse(fenceMatch[1].trim()); } catch {}
+  }
+  // Try 2: find the outermost { ... } block
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end > start) {
+    try { return JSON.parse(raw.slice(start, end + 1)); } catch {}
+  }
+  // Try 3: strip all markdown and parse
+  try { return JSON.parse(raw.replace(/```[a-z]*\n?/gi, '').trim()); } catch {}
+  throw new Error('Could not parse JSON from response');
+}
+
 async function callGemini(prompt, base64Pdfs = []) {
   if (!apiKey) throw new Error('No API key');
   const parts = [];
@@ -998,8 +1015,7 @@ Be specific and extract real data from the documents. For metrics, include actua
     const raw = await callGemini(prompt, bases);
     let data;
     try {
-      const clean = raw.replace(/```json|```/g, '').trim();
-      data = JSON.parse(clean);
+      data = extractJSON(raw);
     } catch {
       output.innerHTML = `<div style="padding:20px;color:var(--text2);font-size:13px;line-height:1.7">${raw}</div>`;
       return;
@@ -1092,8 +1108,7 @@ Use real data from the documents. Be specific with numbers, dates, and clauses.`
     const raw = await callGemini(prompt, bases);
     let data;
     try {
-      const clean = raw.replace(/```json|```/g, '').trim();
-      data = JSON.parse(clean);
+      data = extractJSON(raw);
     } catch {
       output.innerHTML = `<div style="padding:20px;color:var(--text2);font-size:13px;line-height:1.7">${raw}</div>`;
       return;
